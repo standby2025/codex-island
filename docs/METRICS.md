@@ -1,15 +1,17 @@
 # Prometheus usage exporter
 
-Enable the exporter when launching the built app binary:
+Open Settings → General → Prometheus metrics. Enable **Usage exporter** and
+set **Metrics port** (default 9464), then click **Apply**. The exporter is off
+by default. Both settings persist across launches and apply immediately; disabling
+it closes the listener and active connections. Changing the port restarts it.
+The endpoint URL or binding error appears below the controls.
 
 ```sh
-CODEXISLAND_METRICS_PORT=9464 /Applications/CodexIsland.app/Contents/MacOS/CodexIsland
 curl http://127.0.0.1:9464/metrics
 ```
 
-Quit an already running copy first. The exporter is disabled unless the environment
-variable contains a port between 1 and 65535. It binds only to IPv4 loopback.
-Demo mode never starts the exporter. Binding failures are reported to the system log.
+The listener binds only to IPv4 loopback. Demo mode never starts it.
+The former `CODEXISLAND_METRICS_PORT` environment variable is no longer used.
 
 Prometheus configuration (Prometheus must run on the same host):
 

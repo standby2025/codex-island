@@ -13,6 +13,8 @@ struct SettingsView: View {
     @ObservedObject private var visibility = ProviderVisibilityStore.shared
     @ObservedObject private var refreshStore = RefreshIntervalStore.shared
     @ObservedObject private var tokenMode = TokenCountModeStore.shared
+    @ObservedObject private var metrics = MetricsExporter.shared
+    @State private var metricsPortText = ""
     @ObservedObject private var lowPower = LowPowerModeStore.shared
     @ObservedObject private var alwaysShow = AlwaysShowUsageStore.shared
     @ObservedObject private var alertPrefs = AlertThresholdStore.shared
@@ -154,6 +156,7 @@ struct SettingsView: View {
                 }
             }
             .padding(.horizontal, 14)
+            metricsSection
             alertsSection
             updatesSection
         }
@@ -259,6 +262,48 @@ struct SettingsView: View {
         .padding(.horizontal, 14)
         .padding(.top, 18)
         .padding(.bottom, 6)
+    }
+
+    private var metricsSection: some View {
+        VStack(alignment: .leading, spacing: 0) {
+            sectionLabel("Prometheus metrics")
+            SettingsRow(title: "Usage exporter", subtitle: "Expose subscription quota on localhost.") {
+                SettingsToggle(isOn: metrics.enabled) { metrics.enabled.toggle() }
+                    .disabled(AppEnvironment.isDemo)
+            }
+            SettingsRow(title: "Metrics port", subtitle: "Choose a port between 1 and 65535.") {
+                HStack(spacing: 8) {
+                    TextField("9464", text: $metricsPortText)
+                        .textFieldStyle(.roundedBorder)
+                        .frame(width: 76)
+                        .accessibilityLabel(L10n.tr("Metrics port"))
+                        .onSubmit { applyMetricsPort() }
+                    Button(L10n.tr("Apply")) { applyMetricsPort() }
+                        .disabled(validMetricsPort == nil || validMetricsPort == metrics.port)
+                }
+            }
+            Text(metrics.errorMessage ?? (metrics.listening
+                ? "http://127.0.0.1:\(metrics.port)/metrics"
+                : L10n.tr(metrics.enabled ? "Starting exporter…" : "Exporter is off.")))
+                .font(.caption)
+                .foregroundStyle(metrics.errorMessage == nil ? Color.secondary : Color.red)
+                .textSelection(.enabled)
+                .padding(.vertical, 8)
+        }
+        .padding(.horizontal, 14)
+        .padding(.top, 18)
+        .onAppear { metricsPortText = String(metrics.port) }
+    }
+
+    private var validMetricsPort: Int? {
+        guard let value = Int(metricsPortText), (1...65535).contains(value) else { return nil }
+        return value
+    }
+
+    private func applyMetricsPort() {
+        guard let value = validMetricsPort else { return }
+        metrics.setPort(value)
+        metricsPortText = String(metrics.port)
     }
 
     /// Approaching-limit alerts. Default off — opt-in via the toggle.

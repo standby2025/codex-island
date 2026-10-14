@@ -26,7 +26,7 @@ struct CodexIslandApp: App {
 
 @MainActor
 final class AppDelegate: NSObject, NSApplicationDelegate {
-    private let metricsExporter = MetricsExporter()
+    private let metricsExporter = MetricsExporter.shared
     var island: IslandWindowController?
     private var settingsShortcutMonitor: Any?
     private var weeklyCardLaunchObservation: AnyCancellable?

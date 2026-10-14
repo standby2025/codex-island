@@ -1,34 +1,80 @@
 import Foundation
 import Network
+import Combine
 
 @MainActor
-final class MetricsExporter {
+final class MetricsExporter: ObservableObject {
+    static let shared = MetricsExporter()
+    @Published var enabled: Bool {
+        didSet {
+            defaults.set(enabled, forKey: "MacIsland.metricsEnabled")
+            configure()
+        }
+    }
+    @Published private(set) var port: Int
+    @Published private(set) var errorMessage: String?
+    @Published private(set) var listening = false
+
+    private let defaults: UserDefaults
+
+    init(defaults: UserDefaults = .standard) {
+        self.defaults = defaults
+        enabled = defaults.bool(forKey: "MacIsland.metricsEnabled")
+        let stored = defaults.integer(forKey: "MacIsland.metricsPort")
+        port = (1...65535).contains(stored) ? stored : 9464
+    }
+
+    func setPort(_ value: Int) {
+        guard (1...65535).contains(value), value != port else { return }
+        port = value
+        defaults.set(port, forKey: "MacIsland.metricsPort")
+        configure()
+    }
+
     private var listener: NWListener?
     private var connections: [UUID: NWConnection] = [:]
 
-    func startIfEnabled() {
-        guard !AppEnvironment.isDemo,
-              let raw = ProcessInfo.processInfo.environment["CODEXISLAND_METRICS_PORT"] else { return }
-        guard let port = UInt16(raw), port > 0, let endpointPort = NWEndpoint.Port(rawValue: port) else {
-            NSLog("Metrics exporter: CODEXISLAND_METRICS_PORT must be between 1 and 65535")
-            return
-        }
+    func startIfEnabled() { configure() }
+
+    private func configure() {
+        listener?.cancel()
+        listener = nil
+        for connection in connections.values { connection.cancel() }
+        connections.removeAll()
+        listening = false
+        errorMessage = nil
+        guard enabled, !AppEnvironment.isDemo,
+              let endpointPort = NWEndpoint.Port(rawValue: UInt16(port)) else { return }
         do {
             let parameters = NWParameters.tcp
             parameters.requiredLocalEndpoint = .hostPort(host: "127.0.0.1", port: endpointPort)
             let listener = try NWListener(using: parameters)
-            listener.newConnectionHandler = { [weak self] connection in
-                Task { @MainActor in self?.accept(connection) }
+            listener.newConnectionHandler = { [weak self, weak listener] connection in
+                Task { @MainActor in
+                    guard let self, let listener, self.listener === listener else {
+                        connection.cancel()
+                        return
+                    }
+                    self.accept(connection)
+                }
             }
-            listener.stateUpdateHandler = { state in
-                if case .failed(let error) = state {
-                    NSLog("Metrics exporter failed: %@", error.localizedDescription)
+            listener.stateUpdateHandler = { [weak self, weak listener] state in
+                Task { @MainActor in
+                    guard let self, let listener, self.listener === listener else { return }
+                    switch state {
+                    case .ready: self.listening = true
+                    case .failed(let error):
+                        self.listening = false
+                        self.errorMessage = error.localizedDescription
+                        listener.cancel()
+                    default: break
+                    }
                 }
             }
             self.listener = listener
             listener.start(queue: .main)
         } catch {
-            NSLog("Metrics exporter failed: %@", error.localizedDescription)
+            errorMessage = error.localizedDescription
         }
     }
 

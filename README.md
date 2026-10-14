@@ -437,6 +437,5 @@ MIT - see [LICENSE](LICENSE).
 ## Prometheus metrics
 
 An optional local `/metrics` endpoint exports subscription quota used/remaining
-ratios and reset timestamps from the existing usage cache. Enable it with
-`CODEXISLAND_METRICS_PORT=9464` when launching the app binary. See
+ratios and reset timestamps from the existing usage cache. Enable it in Settings → General → Prometheus metrics (default off, port 9464). See
 [exporter setup and metrics](docs/METRICS.md).

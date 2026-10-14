@@ -412,3 +412,19 @@
 "Muse Code did not include usage limits in this response. Try again after using Muse Code." = "Muse Code did not include usage limits in this response. Try again after using Muse Code.";
 "Muse Code local token history is not supported yet" = "Muse Code local token history is not supported yet";
 "Last reading - refresh failed" = "Last reading - refresh failed";
+
+"Prometheus metrics" = "Prometheus metrics";
+
+"Usage exporter" = "Usage exporter";
+
+"Expose subscription quota on localhost." = "Expose subscription quota on localhost.";
+
+"Metrics port" = "Metrics port";
+
+"Choose a port between 1 and 65535." = "Choose a port between 1 and 65535.";
+
+"Apply" = "Apply";
+
+"Starting exporter…" = "Starting exporter…";
+
+"Exporter is off." = "Exporter is off.";
