@@ -26,6 +26,7 @@ struct CodexIslandApp: App {
 
 @MainActor
 final class AppDelegate: NSObject, NSApplicationDelegate {
+    private let metricsExporter = MetricsExporter()
     var island: IslandWindowController?
     private var settingsShortcutMonitor: Any?
     private var weeklyCardLaunchObservation: AnyCancellable?
@@ -65,6 +66,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         // already has cached values the first time the user hovers, instead
         // of flashing "0%" while the first request lands.
         UsageStore.shared.startAutoRefresh()
+        metricsExporter.startIfEnabled()
         CostStore.shared.startAutoRefresh()
         PricingCatalog.startAutoRefresh()
         CurrencyStore.shared.startAutoRefresh()

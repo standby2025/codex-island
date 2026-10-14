@@ -433,3 +433,10 @@ MIT - see [LICENSE](LICENSE).
    <img alt="Star History Chart" src="https://api.star-history.com/chart?repos=ericjypark/codex-island&type=date&legend=top-left" />
  </picture>
 </a>
+
+## Prometheus metrics
+
+An optional local `/metrics` endpoint exports subscription quota used/remaining
+ratios and reset timestamps from the existing usage cache. Enable it with
+`CODEXISLAND_METRICS_PORT=9464` when launching the app binary. See
+[exporter setup and metrics](docs/METRICS.md).
