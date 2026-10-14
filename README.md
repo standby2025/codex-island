@@ -433,3 +433,9 @@ MIT - see [LICENSE](LICENSE).
    <img alt="Star History Chart" src="https://api.star-history.com/chart?repos=ericjypark/codex-island&type=date&legend=top-left" />
  </picture>
 </a>
+
+## Prometheus metrics
+
+An optional `/metrics` endpoint exports subscription quota used/remaining
+ratios and reset timestamps from the existing usage cache. Enable it in Settings → General → Prometheus metrics (default off, address 0.0.0.0, port 9464). See
+[exporter setup and metrics](docs/METRICS.md).

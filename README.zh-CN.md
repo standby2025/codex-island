@@ -140,3 +140,10 @@ npm install --global create-dmg
 `release.sh` 会运行原生构建，把 `.app` 复制到 `dist/`，应用 ad-hoc codesign，创建 `dist/CodexIsland-X.Y.Z.dmg`，并输出文件大小和 SHA-256。
 
 推送 `v*` tag 会触发 `.github/workflows/release.yml`，在 `macos-15` 上构建 DMG、计算 checksum、发布 GitHub Release，并在配置了 `HOMEBREW_TAP_TOKEN` 时同步 cask 到 `ericjypark/homebrew-tap`。
+
+## Prometheus 指标
+
+在 Settings → General → Prometheus 指标中开启用量导出服务，即可启用
+`http://<Mac 的 IP>:9464/metrics`。默认关闭，监听地址默认 `0.0.0.0`，端口默认 9464，均可修改并保存。
+导出订阅额度的已用比例、剩余比例及重置时间，复用现有用量缓存。
+详见 [配置与指标说明](docs/METRICS.md)。
