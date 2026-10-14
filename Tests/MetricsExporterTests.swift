@@ -22,7 +22,10 @@ import Foundation
         guard let defaults = UserDefaults(suiteName: suite) else { fatalError("No defaults") }
         defer { defaults.removePersistentDomain(forName: suite) }
         let exporter = MetricsExporter(defaults: defaults)
-        precondition(!exporter.enabled && exporter.port == 9464)
+        precondition(!exporter.enabled && exporter.port == 9464 && exporter.address == "0.0.0.0")
+        precondition(MetricsExporter.validAddress("::1"))
+        exporter.setAddress("invalid-host")
+        precondition(exporter.address == "0.0.0.0")
         exporter.startIfEnabled()
         precondition(!exporter.listening)
         exporter.setPort(0)
@@ -41,8 +44,12 @@ import Foundation
         try await waitForListener(exporter)
         let (_, moved) = try await session.data(from: URL(string: "http://127.0.0.1:29465/metrics")!)
         precondition((moved as? HTTPURLResponse)?.statusCode == 200)
+        exporter.setAddress("127.0.0.1")
+        try await waitForListener(exporter)
+        let (_, rebound) = try await session.data(from: URL(string: "http://127.0.0.1:29465/metrics")!)
+        precondition((rebound as? HTTPURLResponse)?.statusCode == 200)
         let restored = MetricsExporter(defaults: defaults)
-        precondition(restored.enabled && restored.port == 29465)
+        precondition(restored.enabled && restored.port == 29465 && restored.address == "127.0.0.1")
         exporter.enabled = false
         precondition(!exporter.listening)
         try await Task.sleep(nanoseconds: 100_000_000)

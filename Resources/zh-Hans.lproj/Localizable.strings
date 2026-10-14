@@ -428,3 +428,9 @@
 "Starting exporter…" = "正在启动导出服务…";
 
 "Exporter is off." = "导出服务已关闭。";
+
+"Listen address" = "监听地址";
+
+"0.0.0.0 for all IPv4 interfaces, or a specific IP." = "0.0.0.0 监听所有 IPv4 网卡，也可指定 IP。";
+
+"Expose subscription quota for Prometheus." = "为 Prometheus 提供订阅额度指标。";

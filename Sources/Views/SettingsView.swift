@@ -14,6 +14,7 @@ struct SettingsView: View {
     @ObservedObject private var refreshStore = RefreshIntervalStore.shared
     @ObservedObject private var tokenMode = TokenCountModeStore.shared
     @ObservedObject private var metrics = MetricsExporter.shared
+    @State private var metricsAddressText = ""
     @State private var metricsPortText = ""
     @ObservedObject private var lowPower = LowPowerModeStore.shared
     @ObservedObject private var alwaysShow = AlwaysShowUsageStore.shared
@@ -267,9 +268,21 @@ struct SettingsView: View {
     private var metricsSection: some View {
         VStack(alignment: .leading, spacing: 0) {
             sectionLabel("Prometheus metrics")
-            SettingsRow(title: "Usage exporter", subtitle: "Expose subscription quota on localhost.") {
+            SettingsRow(title: "Usage exporter", subtitle: "Expose subscription quota for Prometheus.") {
                 SettingsToggle(isOn: metrics.enabled) { metrics.enabled.toggle() }
                     .disabled(AppEnvironment.isDemo)
+            }
+            SettingsRow(title: "Listen address", subtitle: "0.0.0.0 for all IPv4 interfaces, or a specific IP.") {
+                HStack(spacing: 8) {
+                    TextField("0.0.0.0", text: $metricsAddressText)
+                        .textFieldStyle(.roundedBorder)
+                        .frame(width: 140)
+                        .accessibilityLabel(L10n.tr("Listen address"))
+                        .onSubmit { applyMetricsAddress() }
+                    Button(L10n.tr("Apply")) { applyMetricsAddress() }
+                        .disabled(!MetricsExporter.validAddress(metricsAddressText.trimmingCharacters(in: .whitespacesAndNewlines))
+                            || metricsAddressText == metrics.address)
+                }
             }
             SettingsRow(title: "Metrics port", subtitle: "Choose a port between 1 and 65535.") {
                 HStack(spacing: 8) {
@@ -283,7 +296,7 @@ struct SettingsView: View {
                 }
             }
             Text(metrics.errorMessage ?? (metrics.listening
-                ? "http://127.0.0.1:\(metrics.port)/metrics"
+                ? metrics.endpointURL
                 : L10n.tr(metrics.enabled ? "Starting exporter…" : "Exporter is off.")))
                 .font(.caption)
                 .foregroundStyle(metrics.errorMessage == nil ? Color.secondary : Color.red)
@@ -292,7 +305,15 @@ struct SettingsView: View {
         }
         .padding(.horizontal, 14)
         .padding(.top, 18)
-        .onAppear { metricsPortText = String(metrics.port) }
+        .onAppear {
+            metricsPortText = String(metrics.port)
+            metricsAddressText = metrics.address
+        }
+    }
+
+    private func applyMetricsAddress() {
+        metrics.setAddress(metricsAddressText)
+        metricsAddressText = metrics.address
     }
 
     private var validMetricsPort: Int? {

@@ -428,3 +428,9 @@
 "Starting exporter…" = "Starting exporter…";
 
 "Exporter is off." = "Exporter is off.";
+
+"Listen address" = "Listen address";
+
+"0.0.0.0 for all IPv4 interfaces, or a specific IP." = "0.0.0.0 for all IPv4 interfaces, or a specific IP.";
+
+"Expose subscription quota for Prometheus." = "Expose subscription quota for Prometheus.";

@@ -143,7 +143,7 @@ npm install --global create-dmg
 
 ## Prometheus 指标
 
-在 Settings → General → Prometheus 指标中开启用量导出服务，即可启用本机
-`http://127.0.0.1:9464/metrics`。默认关闭，端口默认 9464，可修改并保存。
+在 Settings → General → Prometheus 指标中开启用量导出服务，即可启用
+`http://<Mac 的 IP>:9464/metrics`。默认关闭，监听地址默认 `0.0.0.0`，端口默认 9464，均可修改并保存。
 导出订阅额度的已用比例、剩余比例及重置时间，复用现有用量缓存。
 详见 [配置与指标说明](docs/METRICS.md)。

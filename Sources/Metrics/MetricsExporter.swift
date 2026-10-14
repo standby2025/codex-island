@@ -11,6 +11,7 @@ final class MetricsExporter: ObservableObject {
             configure()
         }
     }
+    @Published private(set) var address: String
     @Published private(set) var port: Int
     @Published private(set) var errorMessage: String?
     @Published private(set) var listening = false
@@ -19,9 +20,28 @@ final class MetricsExporter: ObservableObject {
 
     init(defaults: UserDefaults = .standard) {
         self.defaults = defaults
+        let storedAddress = defaults.string(forKey: "MacIsland.metricsAddress") ?? "0.0.0.0"
+        address = Self.validAddress(storedAddress) ? storedAddress : "0.0.0.0"
         enabled = defaults.bool(forKey: "MacIsland.metricsEnabled")
         let stored = defaults.integer(forKey: "MacIsland.metricsPort")
         port = (1...65535).contains(stored) ? stored : 9464
+    }
+
+    static func validAddress(_ value: String) -> Bool {
+        IPv4Address(value) != nil || IPv6Address(value) != nil
+    }
+
+    func setAddress(_ value: String) {
+        let value = value.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard Self.validAddress(value), value != address else { return }
+        address = value
+        defaults.set(address, forKey: "MacIsland.metricsAddress")
+        configure()
+    }
+
+    var endpointURL: String {
+        let host = address.contains(":") ? "[\(address)]" : address
+        return "http://\(host):\(port)/metrics"
     }
 
     func setPort(_ value: Int) {
@@ -47,7 +67,7 @@ final class MetricsExporter: ObservableObject {
               let endpointPort = NWEndpoint.Port(rawValue: UInt16(port)) else { return }
         do {
             let parameters = NWParameters.tcp
-            parameters.requiredLocalEndpoint = .hostPort(host: "127.0.0.1", port: endpointPort)
+            parameters.requiredLocalEndpoint = .hostPort(host: NWEndpoint.Host(address), port: endpointPort)
             let listener = try NWListener(using: parameters)
             listener.newConnectionHandler = { [weak self, weak listener] connection in
                 Task { @MainActor in

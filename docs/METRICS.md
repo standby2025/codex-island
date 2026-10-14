@@ -1,26 +1,26 @@
 # Prometheus usage exporter
 
 Open Settings → General → Prometheus metrics. Enable **Usage exporter** and
-set **Metrics port** (default 9464), then click **Apply**. The exporter is off
-by default. Both settings persist across launches and apply immediately; disabling
-it closes the listener and active connections. Changing the port restarts it.
+set **Listen address** (default `0.0.0.0`, or a specific IPv4/IPv6 address) and **Metrics port** (default 9464), then click **Apply**. The exporter is off
+by default. All settings persist across launches and apply immediately; disabling
+it closes the listener and active connections. Changing the address or port restarts it.
 The endpoint URL or binding error appears below the controls.
 
 ```sh
 curl http://127.0.0.1:9464/metrics
 ```
 
-The listener binds only to IPv4 loopback. Demo mode never starts it.
+The default address listens on all IPv4 interfaces. Remote collectors use the Mac’s reachable IP, for example `http://192.168.1.10:9464/metrics`. Choose `127.0.0.1` for local-only access, or `::` for IPv6 wildcard binding. Demo mode never starts it.
 The former `CODEXISLAND_METRICS_PORT` environment variable is no longer used.
 
-Prometheus configuration (Prometheus must run on the same host):
+Prometheus configuration (replace the example IP with this Mac’s reachable IP):
 
 ```yaml
 scrape_configs:
   - job_name: codexisland
     scrape_interval: 60s
     static_configs:
-      - targets: ['127.0.0.1:9464']
+      - targets: ['192.168.1.10:9464']
 ```
 
 All metrics are gauges with `provider`, `window`, and `group` labels:
